@@ -1,0 +1,14 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://0.0.0.0:5432/test_db?schema=schema_sit
+    username: usr
+    password: pass
+    pool:
+      enabled: false
+      initialSize: 5
+      maxSize: 10
+      validationQuery: SELECT 1
+
+logging.level:
+  org.springframework.r2dbc: DEBUG
+
