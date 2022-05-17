@@ -1,7 +1,11 @@
 package com.tirmizee.exception;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tirmizee.exception.data.JWTExpiredException;
 import com.tirmizee.exception.data.JWTSignatureException;
+import com.tirmizee.exception.data.UnauthorizedException;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -14,36 +18,47 @@ import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.SerializationUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
+
+@Slf4j
+@AllArgsConstructor
 @Component
 @Order(-2)
 public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
 
+    private final ObjectMapper jacksonMapper;
+
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
 
-        String message = ex.getMessage();
+        log.info("error: {}",  ex.getClass().getSimpleName());
+
+        ServerHttpResponse serverResponse = exchange.getResponse();
 
         if(ex instanceof LockedException){
-            message = "account is locked";
+            return renderResponseJson(serverResponse, "account is locked");
         }
 
         if(ex instanceof AccountExpiredException){
-            message =  "account is expired";
+            return renderResponseJson(serverResponse, "account is expired");
         }
 
         if(ex instanceof JWTExpiredException) {
-            message = "JWT is expired";
+            return renderResponseJson(serverResponse, "JWT is expired");
         }
 
         if(ex instanceof JWTSignatureException) {
-            message = "JWT signature does not match";
+            return renderResponseJson(serverResponse, "JWT signature does not match");
         }
 
-        return renderResponseJson(exchange.getResponse(), message);
+        if(ex instanceof UnauthorizedException) {
+            return renderResponseJson(serverResponse, "unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        return renderResponseJson(serverResponse, ex.getMessage());
     }
 
     private Mono<Void> renderResponseJson(ServerHttpResponse serverResponse, Object data) {
@@ -59,14 +74,24 @@ public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
     }
 
     private Mono<Void> renderResponseJson(ServerHttpResponse serverResponse, Object data, MultiValueMap<String, String> headers, HttpStatus status) {
-        DataBufferFactory bufferFactory = serverResponse.bufferFactory();
-        DataBuffer dataBuffer = bufferFactory.wrap(SerializationUtils.serialize(data));
-        serverResponse.setStatusCode(status);
-        serverResponse.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        if(headers != null) {
-            serverResponse.getHeaders().addAll(headers);
+        try {
+
+            String jsonResponse = jacksonMapper.writeValueAsString(data);
+            DataBufferFactory bufferFactory = serverResponse.bufferFactory();
+            DataBuffer dataBuffer = bufferFactory.wrap(jsonResponse.getBytes(StandardCharsets.UTF_8));
+            serverResponse.setStatusCode(status);
+            serverResponse.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+            if(headers != null) {
+                serverResponse.getHeaders().addAll(headers);
+            }
+
+            return serverResponse.writeWith(Mono.just(dataBuffer));
+
+        } catch (Exception e) {
+            return serverResponse.setComplete();
         }
-        return serverResponse.writeWith(Mono.just(dataBuffer));
+
     }
 
 }
