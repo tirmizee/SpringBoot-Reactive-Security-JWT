@@ -1,2 +1,8 @@
-package com.tirmizee.property;public class JWTProperty {
+package com.tirmizee.property;
+
+import lombok.Data;
+
+@Data
+public class JWTProperty {
+
 }

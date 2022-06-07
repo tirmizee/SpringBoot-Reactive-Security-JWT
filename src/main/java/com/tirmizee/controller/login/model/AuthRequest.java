@@ -1,4 +1,4 @@
-package com.tirmizee.api.login.model;
+package com.tirmizee.controller.login.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
