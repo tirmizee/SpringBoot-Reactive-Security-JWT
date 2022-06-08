@@ -76,9 +76,9 @@ public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
     private Mono<Void> renderResponseJson(ServerHttpResponse serverResponse, Object data, MultiValueMap<String, String> headers, HttpStatus status) {
         try {
 
-            String jsonResponse = jacksonMapper.writeValueAsString(data);
+            byte[] jsonResponse = jacksonMapper.writeValueAsBytes(data);
             DataBufferFactory bufferFactory = serverResponse.bufferFactory();
-            DataBuffer dataBuffer = bufferFactory.wrap(jsonResponse.getBytes(StandardCharsets.UTF_8));
+            DataBuffer dataBuffer = bufferFactory.wrap(jsonResponse);
             serverResponse.setStatusCode(status);
             serverResponse.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
