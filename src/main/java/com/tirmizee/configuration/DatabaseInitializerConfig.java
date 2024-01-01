@@ -9,10 +9,10 @@ import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
 import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 
 @Configuration
-public class DatabaseConfig {
+public class DatabaseInitializerConfig {
 
-    public static final String SCRIPT_SCHEMA = "schema.sql";
-    public static final String SCRIPT_DATA = "data.sql";
+    public static final String SCRIPT_SCHEMA = "database/schema.sql";
+    public static final String SCRIPT_DATA = "database/data.sql";
 
     @Bean
     public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
