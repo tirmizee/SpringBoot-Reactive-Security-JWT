@@ -28,11 +28,10 @@ public class JWTAuthorizationManager implements ReactiveAuthenticationManager {
 
             String token = authentication.getCredentials().toString();
 
-            return Mono.just(token)
-                    .map(jwt -> {
-                        String username = jwtProvider.getUsername(jwt);
-                        return new UsernamePasswordAuthenticationToken(username, null, null);
-                    });
+            return Mono.just(token).map(jwt -> {
+                String username = jwtProvider.getUsername(jwt);
+                return new UsernamePasswordAuthenticationToken(username, null, null);
+            });
     }
 
 }

@@ -1,6 +1,5 @@
 package com.tirmizee.configuration;
 
-import com.tirmizee.security.JWTContextRepository;
 import com.tirmizee.security.JWTUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +12,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
 @AllArgsConstructor
 @EnableWebFluxSecurity
@@ -20,7 +20,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 public class WebSecurityConfig {
 
     private final JWTUserDetailsService userDetailService;
-    private final JWTContextRepository jwtContextRepository;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -29,14 +28,11 @@ public class WebSecurityConfig {
                 .disable()
             .formLogin()
                 .disable()
-            .securityContextRepository(jwtContextRepository)
+            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authorizeExchange()
-                .pathMatchers(HttpMethod.OPTIONS)
-                    .permitAll()
-                .pathMatchers("/login/v1", "/login/v2")
-                    .permitAll()
-                .anyExchange()
-                    .authenticated();
+                .pathMatchers(HttpMethod.OPTIONS).permitAll()
+                .pathMatchers("/v1/login", "/v2/login").permitAll()
+                .anyExchange().authenticated();
         return http.build();
     }
 
