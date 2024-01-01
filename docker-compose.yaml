@@ -19,6 +19,9 @@ services:
       POSTGRES_DB: test_db
     ports:
       - '5432:5432'
+    volumes:
+      - ./init-schema.sql:/docker-entrypoint-initdb.d/01_init_schema.sql
+      - ./init-data.sql:/docker-entrypoint-initdb.d/02_init_data.sql
     networks:
       - backend-network
 networks:

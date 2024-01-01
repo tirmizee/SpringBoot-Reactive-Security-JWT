@@ -4,7 +4,7 @@ spring:
     username: usr
     password: pass
     pool:
-      enabled: false
+      enabled: true
       initialSize: 5
       maxSize: 10
       validationQuery: SELECT 1
