@@ -1,7 +1,7 @@
 package com.tirmizee.configuration;
 
 import com.tirmizee.security.JWTContextRepository;
-import com.tirmizee.security.UserDetailsService;
+import com.tirmizee.security.JWTUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableReactiveMethodSecurity
 public class WebSecurityConfig {
 
-    private final UserDetailsService userDetailService;
+    private final JWTUserDetailsService userDetailService;
     private final JWTContextRepository jwtContextRepository;
 
     @Bean

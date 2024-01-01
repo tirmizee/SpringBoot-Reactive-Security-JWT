@@ -30,22 +30,9 @@ public class JWTAuthorizationManager implements ReactiveAuthenticationManager {
 
             return Mono.just(token)
                     .map(jwt -> {
-                        Claims claims = jwtProvider.getClaims(jwt);
-                        String username = getUsername(claims);
+                        String username = jwtProvider.getUsername(jwt);
                         return new UsernamePasswordAuthenticationToken(username, null, null);
                     });
-    }
-
-    private String getUsername(Claims claims) {
-        return claims.getSubject();
-    }
-
-    private Date getExpiration(Claims claims) {
-        return claims.getExpiration();
-    }
-
-    private Boolean isExpired(Claims claims) {
-        return getExpiration(claims).before(new Date());
     }
 
 }

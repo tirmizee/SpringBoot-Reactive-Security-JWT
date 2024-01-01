@@ -1,6 +1,16 @@
-version: '3.1'
+version: '3.8'
 
 services:
+  redis:
+    image: bitnami/redis:6.2.6
+    platform: linux/amd64
+    container_name: redis-single
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=password123
+    networks:
+      - backend-network
   db:
     image: postgres:14.1-alpine
     environment:
@@ -9,3 +19,7 @@ services:
       POSTGRES_DB: test_db
     ports:
       - '5432:5432'
+    networks:
+      - backend-network
+networks:
+  backend-network:

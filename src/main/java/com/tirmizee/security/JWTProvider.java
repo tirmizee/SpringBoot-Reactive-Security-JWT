@@ -45,9 +45,22 @@ public class JWTProvider {
         } catch (Exception e) {
             throw new JWTSignatureException(e.getMessage());
         }
-
     }
 
+    public String getUsername(String token) {
+        return getUsername(getClaims(token));
+    }
 
+    public String getUsername(Claims claims) {
+        return claims.getSubject();
+    }
+
+    public Date getExpiration(Claims claims) {
+        return claims.getExpiration();
+    }
+
+    public Boolean isExpired(Claims claims) {
+        return getExpiration(claims).before(new Date());
+    }
 
 }

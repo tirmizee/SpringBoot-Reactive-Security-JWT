@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import org.springframework.context.annotation.Role;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Builder
 @EqualsAndHashCode(callSuper = false, of = {"username"})
-public class UserDetails implements org.springframework.security.core.userdetails.UserDetails {
+public class JWTUserDetails implements UserDetails {
 
     private static final long serialVersionUID = 1L;
 

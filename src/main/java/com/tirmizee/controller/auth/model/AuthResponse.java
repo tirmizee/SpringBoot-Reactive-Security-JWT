@@ -1,4 +1,4 @@
-package com.tirmizee.controller.login.model;
+package com.tirmizee.controller.auth.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
-    private String username;
-    private String password;
+public class AuthResponse {
+    private String token;
 }
