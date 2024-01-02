@@ -1,5 +1,6 @@
 package com.tirmizee.configuration;
 
+import com.tirmizee.security.JWTAuthenticationManager;
 import com.tirmizee.security.JWTUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -43,8 +44,7 @@ public class WebSecurityConfig {
 
     @Bean
     public ReactiveAuthenticationManager authenticationManager() {
-        UserDetailsRepositoryReactiveAuthenticationManager authenticationManager =
-                new UserDetailsRepositoryReactiveAuthenticationManager(userDetailService);
+        JWTAuthenticationManager authenticationManager = new JWTAuthenticationManager(userDetailService);
         authenticationManager.setPasswordEncoder(passwordEncoder());
         return authenticationManager;
     }
