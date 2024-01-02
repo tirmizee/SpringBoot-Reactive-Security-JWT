@@ -27,14 +27,13 @@ public class AuthController {
     @PostMapping("/v1/login")
     public Mono<ResponseEntity> login(@RequestBody Mono<AuthRequest> request) {
         return request.flatMap(login -> {
-            System.out.println(login.getUsername() + login.getPassword());
-            var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
-            return authenticationManager.authenticate(usernamePassword);
-        }).map(authenticated -> {
-            var token = jwtProvider.generateToken(authenticated);
-            var response = new AuthResponse(token);
-            return ResponseEntity.ok(response);
-        });
+                    var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
+                    return authenticationManager.authenticate(usernamePassword);
+                }).map(authenticated -> {
+                    var token = jwtProvider.generateToken(authenticated);
+                    var response = new AuthResponse(token);
+                    return ResponseEntity.ok(response);
+                });
     }
 
     @PostMapping("/v2/login")
