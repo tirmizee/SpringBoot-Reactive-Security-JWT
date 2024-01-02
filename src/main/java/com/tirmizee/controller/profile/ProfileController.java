@@ -1,6 +1,9 @@
 package com.tirmizee.controller.profile;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -9,8 +12,9 @@ import reactor.core.publisher.Mono;
 public class ProfileController {
 
     @GetMapping("/profile")
-    public Mono<ResponseEntity> profile() {
-        return Mono.just(ResponseEntity.ok("hello"));
+    public Mono<Authentication> profile() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.tirmizee.configuration;
 
 import com.tirmizee.security.JWTAuthenticationManager;
+import com.tirmizee.security.JWTSecurityContextRepository;
 import com.tirmizee.security.JWTUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 public class WebSecurityConfig {
 
     private final JWTUserDetailsService userDetailService;
+    private final JWTSecurityContextRepository securityContextRepository;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -29,7 +31,7 @@ public class WebSecurityConfig {
                 .disable()
             .formLogin()
                 .disable()
-            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+            .securityContextRepository(securityContextRepository)
             .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
                 .pathMatchers("/v1/login", "/v2/login").permitAll()
