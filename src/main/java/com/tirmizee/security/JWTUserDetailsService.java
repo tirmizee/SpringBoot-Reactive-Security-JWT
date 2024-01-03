@@ -16,13 +16,13 @@ public class JWTUserDetailsService implements ReactiveUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .flatMap(userEntity -> {
+                .map(userEntity -> {
                     JWTUserDetails user = JWTUserDetails.builder()
                         .username(username)
                         .password(userEntity.getPassword())
                         .enabled(userEntity.isEnabled())
                         .build();
-                    return Mono.just(user);
+                    return user;
                 });
     }
 }
