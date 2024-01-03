@@ -58,7 +58,18 @@ curl  -X POST \
   "password": "tirmizee"
 }'
 
-curl  -X POST 'http://localhost:8080/v1/refresh' 
+curl  -X GET \
+  'http://localhost:8080/profile' \
+  --header 'Accept: */*' \
+  --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' \
+  --header 'X-Forwarded-For: 184.22.63.64' \
+  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0aXJtaXplZSIsImlwIjoiMTg0LjIyLjYzLjY0IiwiaWF0IjoxNzA0MjcxMzE0LCJleHAiOjE3MDQyNzEzNTB9.xSDQgAEnLdg3n35yO3UGG8UJkl15zYeaR2I9EtOnaRI'
+
+curl  -X POST \
+  'http://localhost:8080/v1/refresh/8dbab5d9-d941-4fb9-af55-59dfe49e308c' \
+  --header 'Accept: */*' \
+  --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' \
+  --header 'X-Forwarded-For: 184.22.63.64'
 
 ```
 
