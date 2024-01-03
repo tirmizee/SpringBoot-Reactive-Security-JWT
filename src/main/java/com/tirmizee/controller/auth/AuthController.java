@@ -2,7 +2,6 @@ package com.tirmizee.controller.auth;
 
 import com.tirmizee.controller.auth.model.AuthRequest;
 import com.tirmizee.controller.auth.model.AuthResponse;
-import com.tirmizee.security.JWTProvider;
 import com.tirmizee.service.AccessTokenService;
 import com.tirmizee.service.RefreshTokenService;
 import lombok.AllArgsConstructor;

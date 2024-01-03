@@ -28,7 +28,6 @@ public class RefreshTokenService {
 
     public Mono<AuthResponse> refreshToken(String refreshToken, String ip) {
         return getAndDeleteRefreshToken(refreshToken)
-                .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new UnauthorizedException("Refresh token is expired or invalid.")))
                 .filter(detail -> ip != null && ip.equals(detail.getIp()))
                 .switchIfEmpty(Mono.error(new UnauthorizedException("IP mismatch.")))
