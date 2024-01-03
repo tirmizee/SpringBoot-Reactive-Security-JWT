@@ -14,7 +14,6 @@ public class SpringBootReactiveSecurityJwtApplication {
 		var userRepo = applicationContext.getBean(UserRepository.class);
 		var passwordEnc = applicationContext.getBean(PasswordEncoder.class);
 		var refreshTokenService = applicationContext.getBean(RefreshTokenService.class);
-		refreshTokenService.deleteRefreshTokenByUsername("tirmizee").blockFirst();
 	}
 
 }
