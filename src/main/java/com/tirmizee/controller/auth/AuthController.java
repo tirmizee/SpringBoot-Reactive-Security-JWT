@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -25,12 +26,13 @@ public class AuthController {
     private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping("/v1/login")
-    public Mono<ResponseEntity> login(@RequestBody Mono<AuthRequest> request) {
+    public Mono<ResponseEntity> login(@RequestBody Mono<AuthRequest> request, ServerWebExchange exchange) {
+        String ipAddress = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
         return request.flatMap(login -> {
                     var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
                     return authenticationManager.authenticate(usernamePassword);
                 }).map(authenticated -> {
-                    var token = jwtProvider.generateToken(authenticated);
+                    var token = jwtProvider.generateToken(authenticated, ipAddress);
                     var response = new AuthResponse(token);
                     return ResponseEntity.ok(response);
                 });
@@ -48,7 +50,8 @@ public class AuthController {
                     return authenticationManager.authenticate(usernamePassword);
                 })
                 .map(authenticated -> {
-                    var token = jwtProvider.generateToken(authenticated);
+                    String ipAddress = headers.getFirst("X-Forwarded-For");
+                    var token = jwtProvider.generateToken(authenticated, ipAddress);
                     var response = new AuthResponse(token);
                     return ResponseEntity.ok(response);
                 });

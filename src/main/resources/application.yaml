@@ -9,7 +9,7 @@ spring:
       maxSize: 10
       validationQuery: SELECT 1
 ่jwt:
-  secret: jfnkasdfkn77812bh23821i89j
+  secret: 11111111111111111111111111111111
   expiration: 3600000
 logging.level:
   org.springframework.r2dbc: DEBUG
