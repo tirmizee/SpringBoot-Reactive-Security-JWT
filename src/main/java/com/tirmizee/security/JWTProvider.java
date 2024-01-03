@@ -23,7 +23,7 @@ public class JWTProvider {
     public String generateToken(String username, Collection<? extends GrantedAuthority> authorities, String ip) {
 
         Date now = new Date();
-        Date validity = new Date(now.getTime() + jwtProperty.getExpiration());
+        Date validity = new Date(now.getTime() + jwtProperty.getAccessExpiration());
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("ip", ip);
         claims.put("authorities", authorities);

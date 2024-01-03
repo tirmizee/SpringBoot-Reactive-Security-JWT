@@ -23,7 +23,7 @@ public class AccessTokenService {
 
     public Mono<String> generateAccessToken(String username, Collection<? extends GrantedAuthority> authorities, String ip) {
         String accessToken = jwtProvider.generateToken(username, authorities, ip);
-        return putAccessTokenWithExpiry(username, accessToken, Duration.ofMillis(jwtProperty.getExpiration()))
+        return putAccessTokenWithExpiry(username, accessToken, Duration.ofMillis(jwtProperty.getAccessExpiration()))
                 .thenReturn(accessToken);
     }
 

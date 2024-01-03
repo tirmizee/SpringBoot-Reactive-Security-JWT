@@ -14,7 +14,8 @@ spring:
       validationQuery: SELECT 1
 ่jwt:
   secret: 11111111111111111111111111111111
-  expiration: 36000
+  access-expiration: 36000
+  refresh-expiration: 360000
 logging.level:
   org.springframework.r2dbc: DEBUG
 
