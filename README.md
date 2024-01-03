@@ -38,6 +38,33 @@ networks:
 
 ```
 
+### application.yaml
+
+```yaml
+spring:
+  redis:
+    host: 0.0.0.0
+    port: 6379
+    password: password123
+  r2dbc:
+    url: r2dbc:postgresql://0.0.0.0:5432/test_db?schema=schema_sit
+    username: usr
+    password: pass
+    pool:
+      enabled: true
+      initialSize: 5
+      maxSize: 10
+      validationQuery: SELECT 1
+่jwt:
+  secret: 11111111111111111111111111111111
+  access-expiration: 36000
+  refresh-expiration: 360000
+logging.level:
+  org.springframework.r2dbc: DEBUG
+
+
+```
+
 ### curl
 
 ```curl
