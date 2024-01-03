@@ -55,7 +55,7 @@ public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         if(ex instanceof UnauthorizedException) {
-            return renderResponseJson(serverResponse, "unauthorized", HttpStatus.UNAUTHORIZED);
+            return renderResponseJson(serverResponse, "Unauthorized", HttpStatus.UNAUTHORIZED);
         }
 
         return renderResponseJson(serverResponse, ex.getMessage());

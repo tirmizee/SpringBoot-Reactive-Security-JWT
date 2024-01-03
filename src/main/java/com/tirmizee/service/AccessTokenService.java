@@ -32,7 +32,7 @@ public class AccessTokenService {
     }
 
     public Mono<String> getAccessToken(String username) {
-        return redisStringTemplate.opsForValue().getAndDelete(ACCESS_TOKEN_PREFIX + username);
+        return redisStringTemplate.opsForValue().get(ACCESS_TOKEN_PREFIX + username);
     }
 
 }
