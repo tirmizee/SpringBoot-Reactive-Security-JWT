@@ -5,6 +5,7 @@ import com.tirmizee.controller.auth.model.AuthResponse;
 import com.tirmizee.security.JWTProvider;
 import com.tirmizee.service.RefreshTokenService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 public class AuthController {
@@ -31,11 +33,10 @@ public class AuthController {
         return request.flatMap(login -> {
                     var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
                     return authenticationManager.authenticate(usernamePassword);
-                }).map(authenticated -> {
+                }).flatMap(authenticated -> {
                     var accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
-                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress).block();
-                    var response = new AuthResponse(accessToken, refreshToken);
-                    return ResponseEntity.ok(response);
+                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    return refreshToken.map(rt -> new AuthResponse(accessToken, rt)).map(ResponseEntity::ok);
                 });
     }
 
@@ -45,7 +46,7 @@ public class AuthController {
         return refreshTokenService.refreshToken(refresh, ipAddress)
                 .map(authResponse -> ResponseEntity.ok(authResponse))
                 .onErrorResume(e -> {
-                    System.out.println(e.getClass().getSimpleName());
+                   log.error("{} -> {} ",e.getClass().getSimpleName(), e.getMessage());
                     return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
                 });
     }
@@ -61,12 +62,11 @@ public class AuthController {
                     var usernamePassword = new UsernamePasswordAuthenticationToken(authUsernamePassword[0], authUsernamePassword[1]);
                     return authenticationManager.authenticate(usernamePassword);
                 })
-                .map(authenticated -> {
+                .flatMap(authenticated -> {
                     String ipAddress = headers.getFirst("X-Forwarded-For");
-                    var accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
-                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress).block();
-                    var response = new AuthResponse(accessToken, refreshToken);
-                    return ResponseEntity.ok(response);
+                    String accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    Mono<String> refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    return refreshToken.map(rt -> new AuthResponse(accessToken, rt)).map(ResponseEntity::ok);
                 });
     }
 
