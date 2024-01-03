@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -23,16 +24,11 @@ public class RefreshTokenService {
 
     public Mono<AuthResponse> refreshToken(String refreshToken, String ip) {
         return getAndDeleteRefreshToken(refreshToken)
+                .filter(Objects::nonNull)
+                .switchIfEmpty(Mono.error(new UnauthorizedException("Refresh token is expired or invalid.")))
+                .filter(detail -> ip != null && ip.equals(detail.getIp()))
+                .switchIfEmpty(Mono.error(new UnauthorizedException("IP mismatch.")))
                 .flatMap(refreshTokenDetail -> {
-
-                    if (refreshTokenDetail == null) {
-                       throw new UnauthorizedException("Refresh token is expired.");
-                    }
-
-                    if (ip == null || !ip.equals(refreshTokenDetail.getIp())) {
-                        throw new UnauthorizedException("IP mismatch.");
-                    }
-
                     String newAccessToken = jwtProvider.generateToken(refreshTokenDetail.getUsername(), refreshTokenDetail.getAuthorities(), ip);
                     return generateRefreshToken(refreshTokenDetail.getUsername(), refreshTokenDetail.getAuthorities(), ip)
                             .map(newRefreshToken -> new AuthResponse(newAccessToken, newRefreshToken));
@@ -56,8 +52,7 @@ public class RefreshTokenService {
 
     public Mono<RefreshTokenDetail> getAndDeleteRefreshToken(String refreshToken) {
         return reactiveRedisTemplate.opsForValue()
-                .getAndDelete("refresh_token:" +  refreshToken)
-                .switchIfEmpty(Mono.error(new NullPointerException("No such refresh token exists.")));
+                .getAndDelete("refresh_token:" +  refreshToken);
     }
 
 }

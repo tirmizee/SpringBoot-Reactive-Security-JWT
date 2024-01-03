@@ -44,7 +44,10 @@ public class AuthController {
         String ipAddress = headers.getFirst("X-Forwarded-For");
         return refreshTokenService.refreshToken(refresh, ipAddress)
                 .map(authResponse -> ResponseEntity.ok(authResponse))
-                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
+                .onErrorResume(e -> {
+                    System.out.println(e.getClass().getSimpleName());
+                    return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                });
     }
 
     @PostMapping("/v2/login")
