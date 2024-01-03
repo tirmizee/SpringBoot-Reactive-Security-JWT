@@ -3,6 +3,7 @@ package com.tirmizee.controller.auth;
 import com.tirmizee.controller.auth.model.AuthRequest;
 import com.tirmizee.controller.auth.model.AuthResponse;
 import com.tirmizee.security.JWTProvider;
+import com.tirmizee.service.AccessTokenService;
 import com.tirmizee.service.RefreshTokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,36 +24,31 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @RestController
 public class AuthController {
 
-    private final JWTProvider jwtProvider;
+    private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
     private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping("/v1/login")
     public Mono<ResponseEntity> login(@RequestBody Mono<AuthRequest> request, ServerWebExchange exchange) {
         String ipAddress = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-        return request.flatMap(login -> {
+        return request
+                .flatMap(login -> {
                     var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
                     return authenticationManager.authenticate(usernamePassword);
-                }).flatMap(authenticated -> {
-                    var accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                })
+                .flatMap(authenticated -> {
+                    var accessToken = accessTokenService.generateAccessToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
                     var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
-                    return refreshToken.map(rt -> new AuthResponse(accessToken, rt)).map(ResponseEntity::ok);
-                });
-    }
-
-    @PostMapping("/v1/refresh/{refresh}")
-    public Mono<ResponseEntity<AuthResponse>> refreshToken(@PathVariable String refresh, @RequestHeader HttpHeaders headers) {
-        String ipAddress = headers.getFirst("X-Forwarded-For");
-        return refreshTokenService.refreshToken(refresh, ipAddress)
-                .map(authResponse -> ResponseEntity.ok(authResponse))
-                .onErrorResume(e -> {
-                   log.error("{} -> {} ",e.getClass().getSimpleName(), e.getMessage());
-                    return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                    return Mono
+                            .zip(accessToken, refreshToken)
+                            .map(tuple -> new AuthResponse(tuple.getT1(), tuple.getT2()))
+                            .map(ResponseEntity::ok);
                 });
     }
 
     @PostMapping("/v2/login")
     public Mono<ResponseEntity> loginBasic(@RequestHeader HttpHeaders headers) {
+        String ipAddress = headers.getFirst("X-Forwarded-For");
         return Mono.justOrEmpty(headers.getFirst(HttpHeaders.AUTHORIZATION))
                 .map(header -> header.substring(6))
                 .map(header -> Base64Utils.decodeFromString(header))
@@ -63,10 +59,23 @@ public class AuthController {
                     return authenticationManager.authenticate(usernamePassword);
                 })
                 .flatMap(authenticated -> {
-                    String ipAddress = headers.getFirst("X-Forwarded-For");
-                    String accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
-                    Mono<String> refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
-                    return refreshToken.map(rt -> new AuthResponse(accessToken, rt)).map(ResponseEntity::ok);
+                    var accessToken = accessTokenService.generateAccessToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    return Mono
+                            .zip(accessToken, refreshToken)
+                            .map(tuple -> new AuthResponse(tuple.getT1(), tuple.getT2()))
+                            .map(ResponseEntity::ok);
+                });
+    }
+
+    @PostMapping("/v1/refresh/{refresh}")
+    public Mono<ResponseEntity<AuthResponse>> refreshToken(@PathVariable String refresh, @RequestHeader HttpHeaders headers) {
+        String ipAddress = headers.getFirst("X-Forwarded-For");
+        return refreshTokenService.refreshToken(refresh, ipAddress)
+                .map(authResponse -> ResponseEntity.ok(authResponse))
+                .onErrorResume(e -> {
+                    log.error("{} -> {} ",e.getClass().getSimpleName(), e.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
                 });
     }
 

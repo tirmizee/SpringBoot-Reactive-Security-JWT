@@ -7,7 +7,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -20,23 +19,6 @@ import java.util.Date;
 public class JWTProvider {
 
     private JWTProperty jwtProperty;
-
-
-    public String generateToken(Claims claims, String ip) {
-
-        String username = claims.getSubject();
-
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + jwtProperty.getExpiration());
-        claims.put("ip", ip);
-
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(Keys.hmacShaKeyFor(jwtProperty.getSecret().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
-                .compact();
-    }
 
     public String generateToken(String username, Collection<? extends GrantedAuthority> authorities, String ip) {
 

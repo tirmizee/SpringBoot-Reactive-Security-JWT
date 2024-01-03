@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -15,12 +16,14 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.tirmizee.configuration.RedisConfig.REFRESH_TOKEN_PREFIX;
+
 @AllArgsConstructor
 @Service
 public class RefreshTokenService {
 
     private final JWTProvider jwtProvider;
-    private final ReactiveRedisTemplate<String, RefreshTokenDetail> reactiveRedisTemplate;
+    private final ReactiveRedisTemplate<String, RefreshTokenDetail> redisRefreshTokenTemplate;
 
     public Mono<AuthResponse> refreshToken(String refreshToken, String ip) {
         return getAndDeleteRefreshToken(refreshToken)
@@ -36,23 +39,29 @@ public class RefreshTokenService {
     }
 
     public Mono<String> generateRefreshToken(String username, Collection<? extends GrantedAuthority> authorities, String ip) {
-        String refreshToken = UUID.randomUUID().toString();
+        String refreshToken = username + "-" + UUID.randomUUID();
         RefreshTokenDetail refreshTokenDetail = new RefreshTokenDetail();
         refreshTokenDetail.setIp(ip);
         refreshTokenDetail.setUsername(username);
         refreshTokenDetail.setRefreshToken(refreshToken);
         refreshTokenDetail.setAuthorities(authorities);
-        return putRefreshTokenWithExpiry(refreshToken, refreshTokenDetail, Duration.ofMinutes(20))
+        return deleteRefreshTokenByUsername(username)
+                .then(putRefreshTokenWithExpiry(refreshToken, refreshTokenDetail, Duration.ofMinutes(20)))
                 .thenReturn(refreshToken);
     }
 
     public Mono<Boolean> putRefreshTokenWithExpiry(String refreshToken, RefreshTokenDetail refreshTokenDetail, Duration ttl) {
-        return reactiveRedisTemplate.opsForValue().set("refresh_token:" +  refreshToken, refreshTokenDetail, ttl);
+        return redisRefreshTokenTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + refreshToken, refreshTokenDetail, ttl);
     }
 
     public Mono<RefreshTokenDetail> getAndDeleteRefreshToken(String refreshToken) {
-        return reactiveRedisTemplate.opsForValue()
-                .getAndDelete("refresh_token:" +  refreshToken);
+        return redisRefreshTokenTemplate.opsForValue()
+                .getAndDelete(REFRESH_TOKEN_PREFIX + refreshToken);
+    }
+
+    public Flux<Long> deleteRefreshTokenByUsername(String username) {
+        return redisRefreshTokenTemplate.keys(REFRESH_TOKEN_PREFIX + username + "-*")
+                .flatMap(redisRefreshTokenTemplate::delete);
     }
 
 }

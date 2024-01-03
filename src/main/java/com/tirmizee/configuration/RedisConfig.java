@@ -12,8 +12,25 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
+    public static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
+    public static final String ACCESS_TOKEN_PREFIX = "access_token:";
+
     @Bean
-    public ReactiveRedisTemplate<String, RefreshTokenDetail> reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+    public ReactiveRedisTemplate<String, String> redisStringTemplate(ReactiveRedisConnectionFactory factory) {
+
+        StringRedisSerializer keyValueSerializer = new StringRedisSerializer();
+
+        RedisSerializationContext.RedisSerializationContextBuilder<String, String> builder =
+                RedisSerializationContext.newSerializationContext(keyValueSerializer);
+
+        RedisSerializationContext<String, String> context = builder
+                .value(keyValueSerializer)
+                .build();
+        return new ReactiveRedisTemplate<>(factory, context);
+    }
+
+    @Bean
+    public ReactiveRedisTemplate<String, RefreshTokenDetail> redisRefreshTokenTemplate(ReactiveRedisConnectionFactory factory) {
 
         StringRedisSerializer keySerializer = new StringRedisSerializer();
 
