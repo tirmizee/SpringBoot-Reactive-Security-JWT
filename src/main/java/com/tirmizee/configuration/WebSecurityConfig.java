@@ -32,7 +32,7 @@ public class WebSecurityConfig {
             .securityContextRepository(securityContextRepository)
             .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/v1/login", "/v2/login").permitAll()
+                .pathMatchers("/v1/login", "/v2/login", "/v1/refresh/*").permitAll()
                 .anyExchange().authenticated();
         return http.build();
     }

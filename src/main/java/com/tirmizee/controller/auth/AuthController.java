@@ -3,16 +3,15 @@ package com.tirmizee.controller.auth;
 import com.tirmizee.controller.auth.model.AuthRequest;
 import com.tirmizee.controller.auth.model.AuthResponse;
 import com.tirmizee.security.JWTProvider;
+import com.tirmizee.service.RefreshTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AuthController {
 
     private final JWTProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
     private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping("/v1/login")
@@ -32,10 +32,19 @@ public class AuthController {
                     var usernamePassword = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
                     return authenticationManager.authenticate(usernamePassword);
                 }).map(authenticated -> {
-                    var token = jwtProvider.generateToken(authenticated, ipAddress);
-                    var response = new AuthResponse(token);
+                    var accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress).block();
+                    var response = new AuthResponse(accessToken, refreshToken);
                     return ResponseEntity.ok(response);
                 });
+    }
+
+    @PostMapping("/v1/refresh/{refresh}")
+    public Mono<ResponseEntity<AuthResponse>> refreshToken(@PathVariable String refresh, @RequestHeader HttpHeaders headers) {
+        String ipAddress = headers.getFirst("X-Forwarded-For");
+        return refreshTokenService.refreshToken(refresh, ipAddress)
+                .map(authResponse -> ResponseEntity.ok(authResponse))
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
     }
 
     @PostMapping("/v2/login")
@@ -51,8 +60,9 @@ public class AuthController {
                 })
                 .map(authenticated -> {
                     String ipAddress = headers.getFirst("X-Forwarded-For");
-                    var token = jwtProvider.generateToken(authenticated, ipAddress);
-                    var response = new AuthResponse(token);
+                    var accessToken = jwtProvider.generateToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress);
+                    var refreshToken = refreshTokenService.generateRefreshToken(authenticated.getName(), authenticated.getAuthorities(), ipAddress).block();
+                    var response = new AuthResponse(accessToken, refreshToken);
                     return ResponseEntity.ok(response);
                 });
     }

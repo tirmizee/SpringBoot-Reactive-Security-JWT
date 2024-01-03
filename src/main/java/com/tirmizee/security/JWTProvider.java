@@ -21,15 +21,30 @@ public class JWTProvider {
 
     private JWTProperty jwtProperty;
 
-    public String generateToken(Authentication authentication, String ip) {
 
-        String username = authentication.getName();
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+    public String generateToken(Claims claims, String ip) {
+
+        String username = claims.getSubject();
+
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + jwtProperty.getExpiration());
+        claims.put("ip", ip);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(Keys.hmacShaKeyFor(jwtProperty.getSecret().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateToken(String username, Collection<? extends GrantedAuthority> authorities, String ip) {
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtProperty.getExpiration());
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("ip", ip);
+        claims.put("authorities", authorities);
 
         return Jwts.builder()
                 .setClaims(claims)

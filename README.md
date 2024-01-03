@@ -1,5 +1,8 @@
 # SpringBoot-Reactive-Security-JWT
 
+- Create and manage a access token.
+- Create and manage a refresh token.
+
 ### docker-compose for redis and database
 
 ```yaml
@@ -54,6 +57,8 @@ curl  -X POST \
   "username": "tirmizee",
   "password": "tirmizee"
 }'
+
+curl  -X POST 'http://localhost:8080/v1/refresh' 
 
 ```
 
