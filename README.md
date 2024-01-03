@@ -42,12 +42,14 @@ networks:
 curl  -X POST \
   'http://localhost:8080/v2/login' \
   --header 'Accept: */*' \
+  --header 'X-Forwarded-For: 184.22.63.64' \
   --header 'Authorization: Basic dGlybWl6ZWU6dGlybWl6ZWU='
   
 curl  -X POST \
   'http://localhost:8080/v1/login' \
   --header 'Accept: */*' \
   --header 'Content-Type: application/json' \
+  --header 'X-Forwarded-For: 184.22.63.64' \
   --data-raw '{
   "username": "tirmizee",
   "password": "tirmizee"

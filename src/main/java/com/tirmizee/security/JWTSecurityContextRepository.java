@@ -26,9 +26,19 @@ public class JWTSecurityContextRepository implements ServerSecurityContextReposi
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
-                .flatMap(authHeader -> {
-                    String token = authHeader.substring(6);
-                    Claims claims = jwtProvider.getClaims(token);
+                .map(authHeader -> authHeader.substring(6))
+                .map(token -> jwtProvider.getClaims(token))
+                .flatMap(claims -> {
+
+                    String ipAddress = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+                    if(ipAddress == null) {
+                        return Mono.empty();
+                    }
+
+                    if(!ipAddress.equals(claims.get("ip", String.class))) {
+                        return Mono.empty();
+                    }
+
                     String username = claims.getSubject();
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, null);
                     return Mono.just(new SecurityContextImpl(authentication));
