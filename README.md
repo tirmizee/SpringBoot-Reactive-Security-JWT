@@ -3,6 +3,8 @@
 - Create and manage a access token.
 - Create and manage a refresh token.
 
+## Flow
+
   ![refresh-token](https://github.com/tirmizee/SpringBoot-Reactive-Security-JWT/assets/15135199/c55cb010-7f10-439d-9336-39c9143fdd97)
 
 ### docker-compose for redis and database
